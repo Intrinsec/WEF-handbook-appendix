@@ -1,0 +1,25 @@
+<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
+	<SubscriptionId>AppLocker - Rules violations</SubscriptionId>
+	<SubscriptionType>SourceInitiated</SubscriptionType>
+	<Description>AppLocker policy violations</Description>
+	<Enabled>true</Enabled>
+	<Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
+	<ConfigurationMode>MinLatency</ConfigurationMode>
+
+	<Query><![CDATA[
+<QueryList>
+	<Query Id="0" Path="Microsoft-Windows-AppLocker/EXE and DLL">
+		<Select Path="Microsoft-Windows-AppLocker/EXE and DLL">*[System[(EventID=8003)]]</Select>
+		<Select Path="Microsoft-Windows-AppLocker/MSI and Script">*[System[(EventID=8003)]]</Select>
+	</Query>
+</QueryList> 
+	]]></Query>
+
+	<ReadExistingEvents>true</ReadExistingEvents>
+	<TransportName>http</TransportName>
+	<ContentFormat>RenderedText</ContentFormat>
+	<Locale Language="en-US"/>
+	<LogFile>FWD-AppLocker</LogFile>
+	<AllowedSourceNonDomainComputers></AllowedSourceNonDomainComputers>
+	<AllowedSourceDomainComputers>FIXME_SOURCES</AllowedSourceDomainComputers>
+</Subscription>

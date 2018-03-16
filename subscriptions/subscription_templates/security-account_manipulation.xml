@@ -1,0 +1,29 @@
+<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
+	<SubscriptionId>Security - Account manipulation</SubscriptionId>
+	<SubscriptionType>SourceInitiated</SubscriptionType>
+	<Description>Account creation, lockout or addition to privileged groups</Description>
+	<Enabled>true</Enabled>
+	<Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
+	<ConfigurationMode>MinLatency</ConfigurationMode>
+
+	<Query><![CDATA[
+<QueryList>
+	<Query Id="0" Path="Security">
+		<!-- 4720: User account was created -->
+		<!-- 4740: User account locked out -->
+		<!-- 4728: User account was added to security-enabled global group -->
+		<!-- 4732: User account was added to security-enabled local group -->
+		<!-- 4756: User account was added to security-enabled universal group -->
+		<Select Path="Security">*[System[(EventID=4720 or EventID=4740 or EventID=4728 or EventID=4732 or EventID=4756)]]</Select>
+	</Query>
+</QueryList>
+	]]></Query>
+
+	<ReadExistingEvents>true</ReadExistingEvents>
+	<TransportName>http</TransportName>
+	<ContentFormat>RenderedText</ContentFormat>
+	<Locale Language="en-US"/>
+	<LogFile>FWD-Security</LogFile>
+	<AllowedSourceNonDomainComputers></AllowedSourceNonDomainComputers>
+	<AllowedSourceDomainComputers>FIXME_SOURCES</AllowedSourceDomainComputers>
+</Subscription>

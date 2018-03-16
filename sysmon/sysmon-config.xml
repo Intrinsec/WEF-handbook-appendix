@@ -1,0 +1,247 @@
+<!--
+	Sysmon config v.20180313
+	Tested with Sysmon v7.01
+
+	Credits:
+		- File structure inspired by & includes many patterns from @SwiftOnSecurity's https://github.com/SwiftOnSecurity/sysmon-config
+		- Includes patterns from Alec Randazzo et al.'s https://github.com/crypsisgroup/Splunkmon/blob/master/sysmon.cfg
+-->
+<Sysmon schemaversion="4.00">
+	<HashAlgorithms>md5,sha256,imphash</HashAlgorithms>
+	<CheckRevocation/> <!-- Note: logs loaded drivers that use revoked certificates -->
+
+	<EventFiltering>
+		<!-- Note: event IDs 4, 16, 255 are used to monitor Sysmon's status. -->
+		<!-- Event ID   4: Sysmon service state changed  -->
+		<!-- Event ID  16: Sysmon configuration file changed  -->
+		<!-- Event ID 255: Error report  -->
+		
+		<!-- Event ID 1: Process creation -->
+		<!-- Rationale: Out-of-the-box monitoring for suspicious executables. Far from exhaustive and somewhat unreliable since attackers can 
+		usually control	executable file names. Aim should be to evolve from this configuration to a whitelist-based approach, which will
+		require fine-tuning to filter out the noise. -->
+		<ProcessCreate onmatch="include">
+			<ParentImage condition="image">winword.exe</ParentImage>
+			<ParentImage condition="image">excel.exe</ParentImage>
+			<ParentImage condition="image">powerpnt.exe</ParentImage>
+			<ParentImage condition="image">mspub.exe</ParentImage>
+			<ParentImage condition="image">outlook.exe</ParentImage>
+			<ParentImage condition="image">wmic.exe</ParentImage>
+			<Image condition="image">wmiprvse.exe</Image>
+			<Image condition="image">vssadmin.exe</Image>
+			<Image condition="image">whoami.exe</Image>
+			<Image condition="image">msiexec.exe</Image>
+			<Image condition="image">regsvr32.exe</Image>
+			<Image condition="image">regsvcs.exe</Image>
+			<Image condition="image">regasm.exe</Image>
+			<Image condition="image">installutil.exe</Image>
+			<Image condition="image">msbuild.exe</Image>
+			<Image condition="image">sidebar.exe</Image>
+			<Image condition="image">hh.exe</Image>
+			<Image condition="image">mshta.exe</Image>
+			<Image condition="image">winhlp32.exe</Image>
+			<Image condition="image">wscript.exe</Image>
+			<Image condition="image">cscript.exe</Image>
+			<Image condition="image">wmic.exe</Image>
+			<Image condition="image">winrm.exe</Image>
+			<Image condition="image">wbemtest.exe</Image>
+			<Image condition="image">winmgmt.exe</Image>
+			<Image condition="image">scrcons.exe</Image>
+			<Image condition="image">certutil.exe</Image>
+			<Image condition="image">bitsadmin.exe</Image>
+			<Image condition="image">psexesvc.exe</Image>
+			<Image condition="image">psexec.exe</Image>
+		</ProcessCreate>
+		<ProcessCreate onmatch="exclude">
+			<Image condition="begin with">C:\Program Files\Microsoft Office\</Image>
+			<Image condition="begin with">C:\Program Files (x86)\Microsoft Office\</Image>
+		</ProcessCreate>
+
+		<!-- Event ID 2: File "Creation date" timestamp modification - tracks timestomping -->
+		<!-- Rationale: Monitors all timestamp modifications except known installer applications that exhibit this behavior. -->
+		<!-- Reliability warning: Attackers may impersonate executable names from excluded patterns. -->
+		<FileCreateTime onmatch="include">
+		</FileCreateTime>
+		<FileCreateTime onmatch="exclude">
+			<Image condition="end with">\AppData\Roaming\Dropbox\bin\Dropbox.exe</Image>
+			<Image condition="image">C:\Program Files (x86)\Dropbox\Client\Dropbox.exe</Image>
+			<Image condition="image">C:\Windows\FileManager\FileManager.exe</Image>
+			<Image condition="end with">\AppData\Local\Microsoft\OneDrive\OneDrive.exe</Image>
+			<Image condition="end with">\AppData\Local\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe</Image>
+			<Image condition="end with">\OneDriveSetup.exe</Image>
+			<Image condition="image">C:\Windows\System32\msiexec.exe</Image>
+			<Image condition="image">C:\Windows\servicing\TrustedInstaller.exe</Image>
+			<Image condition="end with">redist.exe</Image>
+		</FileCreateTime>
+
+		<!-- Event ID 3: Successful network connection -->
+		<!-- Rationale: Monitors connections from suspicious locations and from executables that should not legitimately initiate outbound
+		connections. -->
+		<!-- Reliability warning: Attackers may impersonate executable names from excluded patterns. -->
+		<NetworkConnect onmatch="include">
+			<Image condition="begin with">C:\Users</Image>
+			<Image condition="begin with">C:\ProgramData</Image>
+			<Image condition="begin with">C:\Windows\Temp</Image>
+			<Image condition="begin with">C:\Temp</Image>
+			<Image condition="image">cmd.exe</Image>
+			<Image condition="image">powershell.exe</Image>
+			<Image condition="image">net.exe</Image>
+			<Image condition="image">nbtstat.exe</Image>
+			<Image condition="image">wmic.exe</Image>
+			<Image condition="image">wmiprsve.exe</Image>
+			<Image condition="image">at.exe</Image>
+			<Image condition="image">certutil.exe</Image>
+			<Image condition="image">cmd.exe</Image>
+			<Image condition="image">cscript.exe</Image>
+			<Image condition="image">wscript.exe</Image>
+			<Image condition="image">infdefaultinstall.exe</Image>
+			<Image condition="image">java.exe</Image>
+			<Image condition="image">msbuild.exe</Image>
+			<Image condition="image">mshta.exe</Image>
+			<Image condition="image">msiexec.exe</Image>
+			<Image condition="image">notepad.exe</Image>
+			<Image condition="image">reg.exe</Image>
+			<Image condition="image">regsvcs.exe</Image>
+			<Image condition="image">regsvr32.exe</Image>
+			<Image condition="image">rundll32.exe</Image>
+			<Image condition="image">sc.exe</Image>
+			<Image condition="image">tor.exe</Image>
+			<Image condition="image">qwinsta.exe</Image>
+			<Image condition="image">rwinsta.exe</Image>
+			<Image condition="image">psexec.exe</Image>
+			<Image condition="image">psexesvc.exe</Image>
+			<Image condition="image">winexesvc.exe</Image>
+			<DestinationPort condition="is">22</DestinationPort>
+			<DestinationPort condition="is">23</DestinationPort>
+			<DestinationPort condition="is">3389</DestinationPort>
+			<DestinationPort condition="is">5800</DestinationPort>
+			<DestinationPort condition="is">5900</DestinationPort>
+			<DestinationPort condition="is">1723</DestinationPort> <!-- Tor -->
+			<DestinationPort condition="is">4500</DestinationPort> <!-- Tor -->
+			<DestinationPort condition="is">9001</DestinationPort> <!-- Tor -->
+			<DestinationPort condition="is">9030</DestinationPort> <!-- Tor -->
+		</NetworkConnect>
+		<NetworkConnect onmatch="exclude">
+			<Image condition="end with">\AppData\Roaming\Spotify\Spotify.exe</Image>
+			<Image condition="begin with">C:\Program Files\WindowsApps\SpotifyAB.SpotifyMusic_</Image>
+			<Image condition="end with">\AppData\Roaming\Dropbox\bin\Dropbox.exe</Image>
+			<Image condition="image">C:\Program Files (x86)\Dropbox\Client\Dropbox.exe</Image>
+			<Image condition="image">C:\Windows\FileManager\FileManager.exe</Image>
+			<Image condition="end with">\AppData\Local\Microsoft\OneDrive\OneDrive.exe</Image>
+			<Image condition="end with">\AppData\Local\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe</Image>
+			<Image condition="end with">\OneDriveSetup.exe</Image>
+			<Image condition="begin with">C:\ProgramData\Microsoft\Windows Defender\Platform\</Image>
+			<DestinationHostname condition="end with">.microsoft.com</DestinationHostname>
+			<DestinationHostname condition="end with">.microsoft.com.akadns.net</DestinationHostname>
+			<DestinationHostname condition="end with">.microsoft.com.nsatc.net</DestinationHostname>
+		</NetworkConnect>
+
+		<!-- Event ID 5: Process termination -->
+		<!-- Rationale: Monitors process terminations from users' temporary or cache folders. -->
+		<!-- Reliability warning: Attackers may impersonate executable names from excluded patterns. -->
+		<ProcessTerminate onmatch="include">
+			<Image condition="begin with">C:\Users</Image>
+		</ProcessTerminate>
+		<ProcessTerminate onmatch="exclude">
+			<Image condition="end with">\AppData\Local\Google\Update\GoogleUpdate.exe</Image>
+		</ProcessTerminate>
+
+		<!-- Event ID 6: Driver load -->
+		<!-- Rationale: Monitors all non-Microsoft-signed driver loads. Might require fine-tuning to filter out legitimate third party
+		drivers. -->
+		<!-- Reliability warning: Exclusion is based on a string in the signature, not the actual signature. Might be bypassed. -->
+		<DriverLoad onmatch="exclude">
+			<Signature condition="contains">microsoft</Signature>
+			<Signature condition="contains">windows</Signature>
+		</DriverLoad>
+
+		<!-- Event ID 7: DLL load into process -->
+		<!-- Rationale: Not monitored by default; noisy unless fine-tuned (FIXME adapt after WMI testing). -->
+		<ImageLoad onmatch="include">
+			<ImageLoaded condition="contains">wbemcons.dll</ImageLoaded> <!-- WMI resource -->
+		</ImageLoad>
+
+		<!-- Event ID 8: Remote thread creation -->
+		<!-- Rationale: Not monitored by default; noisy unless fine-tuned. -->
+		<CreateRemoteThread onmatch="include">
+		</CreateRemoteThread>
+
+		<!-- Event ID 9: Raw disk access (using '\\.\' path notation) -->
+		<!-- Rationale: Not monitored by default; noisy unless fine-tuned. -->
+		<RawAccessRead onmatch="include">
+		</RawAccessRead>
+
+		<!-- Event ID 10: Inter-process access -->
+		<!-- Rationale: Not monitored by default; noisy unless fine-tuned. -->
+		<ProcessAccess onmatch="include">
+		</ProcessAccess>
+
+		<!-- Event ID 11: File creation -->
+		<!-- Rationale: Monitors usual persistence locations. -->
+		<!-- Reliability warning: Attackers can bypass detection from excluded patterns. -->
+		<FileCreate onmatch="include">
+			<TargetFilename condition="contains">\Startup\</TargetFilename>
+			<TargetFilename condition="begin with">C:\Windows\system32\Tasks</TargetFilename>
+		</FileCreate>
+		<FileCreate onmatch="exclude">
+			<TargetFilename condition="begin with">C:\Windows\system32\Tasks\Microsoft\</TargetFilename> <!-- Very noisy on major updates -->
+		</FileCreate>
+
+		<!-- Event IDs 12, 13, 14: Registry-related events -->
+		<!-- ID 12: Registry object added or deleted -->
+		<!-- ID 13: Registry value set -->
+		<!-- ID 14: Registry object renamed -->
+		<!-- Rationale: Monitors usual persistence mechanisms & lateral movement artifacts. -->
+		<!-- Reliability warning: Attackers may impersonate executable names from excluded patterns. -->
+		<RegistryEvent onmatch="include">
+			<TargetObject condition="contains">\Software\SysInternals\PsExec</TargetObject>
+			<TargetObject condition="contains">\CurrentVersion\Run</TargetObject>
+			<TargetObject condition="contains">\CurrentVersion\Windows\Run</TargetObject>
+			<TargetObject condition="contains">CurrentVersion\Image File Execution Options</TargetObject>
+		</RegistryEvent>
+		<RegistryEvent onmatch="exclude">
+			<Image condition="begin with">C:\ProgramData\Microsoft\Windows Defender\Platform\</Image> <!-- Windows Defender -->
+		</RegistryEvent>
+
+		<!-- Event ID 15: Alternate Data Stream (ADS) created. Most commonly used by downloaded files' Zone.Identifier -->
+		<!-- Rationale: Monitors downloads of files with suspicious extensions. -->
+		<!-- Reliability warning: Contents of a downloaded archive will not necessarily get the Zone.Identifier ADS when extracted. -->
+		<FileCreateStreamHash onmatch="include">
+			<TargetFilename condition="contains">Temp\7z</TargetFilename>
+			<TargetFilename condition="contains">Startup</TargetFilename>
+			<TargetFilename condition="end with">.bat</TargetFilename>
+			<TargetFilename condition="end with">.cmd</TargetFilename>
+			<TargetFilename condition="end with">.hta</TargetFilename>
+			<TargetFilename condition="end with">.lnk</TargetFilename>
+			<TargetFilename condition="end with">.ps1</TargetFilename>
+			<TargetFilename condition="end with">.ps2</TargetFilename>
+			<TargetFilename condition="end with">.reg</TargetFilename>
+			<TargetFilename condition="end with">.js</TargetFilename>
+			<TargetFilename condition="end with">.jse</TargetFilename>
+			<TargetFilename condition="end with">.vb</TargetFilename>
+			<TargetFilename condition="end with">.vbe</TargetFilename>
+			<TargetFilename condition="end with">.vbs</TargetFilename>
+			<TargetFilename condition="end with">.wsf</TargetFilename>
+			<TargetFilename condition="end with">.wsh</TargetFilename>
+		</FileCreateStreamHash>
+
+		<!-- Event IDs 17, 18: Named pipe creation  -->
+		<!-- ID 17: Pipe created -->
+		<!-- ID 18: Pipe connected -->
+		<!-- Rationale: Monitors suspicious named pipes. -->
+		<PipeEvent onmatch="include">
+			<PipeName condition="end with">-stdin</PipeName> <!-- PSExec named pipe (server-side) -->
+			<PipeName condition="end with">-stdout</PipeName> <!-- PSExec named pipe (server-side) -->
+			<PipeName condition="end with">-stderr</PipeName> <!-- PSExec named pipe (server-side) -->
+		</PipeEvent>
+
+		<!-- Event ID 19, 20, 21: WMI events -->
+		<!-- ID 19: WmiEventFilter activity detected -->
+		<!-- ID 20: WmiEventConsumer activity detected -->
+		<!-- ID 21: WmiEventConsumerToFilter activity detected -->
+		<!-- Rationale: Monitors suspicious WMI activity. -->
+		<WmiEvent onmatch="include">
+			<Operation condition="is">Created</Operation>
+		</WmiEvent>
+	</EventFiltering>
+</Sysmon>

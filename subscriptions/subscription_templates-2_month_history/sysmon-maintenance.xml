@@ -1,0 +1,24 @@
+<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
+	<SubscriptionId>Sysmon - maintenance</SubscriptionId>
+	<SubscriptionType>SourceInitiated</SubscriptionType>
+	<Description>Sysmon maintenance logs</Description>
+	<Enabled>true</Enabled>
+	<Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
+
+	<Query><![CDATA[
+<QueryList>
+	<Query Id="0" Path="Microsoft-Windows-Sysmon/Operational">
+		<Select Path="Microsoft-Windows-Sysmon/Operational">*[System[(EventID=4 or EventID=16 or EventID=255) 
+			and (TimeCreated[timediff(@SystemTime) &lt;= 5256000000])]]</Select>
+	</Query>
+</QueryList>
+	]]></Query>
+
+	<ReadExistingEvents>true</ReadExistingEvents>
+	<TransportName>http</TransportName>
+	<ContentFormat>RenderedText</ContentFormat>
+	<Locale Language="en-US"/>
+	<LogFile>FWD-Sysmon</LogFile>
+	<AllowedSourceNonDomainComputers></AllowedSourceNonDomainComputers>
+	<AllowedSourceDomainComputers>FIXME_SOURCES</AllowedSourceDomainComputers>
+</Subscription>

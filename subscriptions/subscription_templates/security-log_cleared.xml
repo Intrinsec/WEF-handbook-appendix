@@ -1,0 +1,28 @@
+<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
+	<SubscriptionId>Security - Log cleared</SubscriptionId>
+	<SubscriptionType>SourceInitiated</SubscriptionType>
+	<Description>Security log cleared</Description>
+	<Enabled>true</Enabled>
+	<Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
+	<ConfigurationMode>MinLatency</ConfigurationMode>
+
+	<Query><![CDATA[
+<QueryList>
+	<Query Id="0" Path="Security">
+		<Select Path="Security">
+			<!--  110: Security event log cleared (XP/2003) -->
+			<!-- 1102: Security event log cleared (2008+) -->
+		*[System[Provider[@Name='Microsoft-Windows-EventLog'] and (EventID=110 or EventID=1102)]]
+		</Select>
+	</Query>
+</QueryList>
+	]]></Query>
+
+	<ReadExistingEvents>true</ReadExistingEvents>
+	<TransportName>http</TransportName>
+	<ContentFormat>RenderedText</ContentFormat>
+	<Locale Language="en-US"/>
+	<LogFile>FWD-Security</LogFile>
+	<AllowedSourceNonDomainComputers></AllowedSourceNonDomainComputers>
+	<AllowedSourceDomainComputers>FIXME_SOURCES</AllowedSourceDomainComputers>
+</Subscription>

@@ -1,0 +1,41 @@
+<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription">
+	<SubscriptionId>Security - Network logons</SubscriptionId>
+	<SubscriptionType>SourceInitiated</SubscriptionType>
+	<Description>Successful network logons</Description>
+	<Enabled>true</Enabled>
+	<Uri>http://schemas.microsoft.com/wbem/wsman/1/windows/EventLog</Uri>
+	<ConfigurationMode>MinLatency</ConfigurationMode>
+
+	<Query><![CDATA[
+<QueryList>
+	<Query Id="0" Path="Security">
+		<!-- 4624: An account has logged on -->
+		<Select Path="Security">*[System[(EventID=4624)]]</Select>
+
+		<!-- Excludes logons that are not network-related -->
+		<!-- Excludes anonymous logons -->
+		<!-- Excludes "Local System", "NT Authority (local)", "NT Authority (network)" accounts -->
+		<Suppress Path="Security">
+			*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and (Level=4 or Level=0) and (EventID=4624)]]
+			and
+			*[EventData[
+			(
+				(Data[@Name='LogonType']='0' or Data[@Name='LogonType']='2' or Data[@Name='LogonType']='4' or Data[@Name='LogonType']='5' or Data[@Name='LogonType']='7' or Data[@Name='LogonType']='11' or Data[@Name='LogonType']='13')
+				or
+				Data[@Name='TargetUserName']='ANONYMOUS LOGON'
+				or
+				(Data[@Name='TargetUserSID']='S-1-5-18' or Data[@Name='TargetUserSID']='S-1-5-19' or Data[@Name='TargetUserSID']='S-1-5-20')
+			)]]
+			</Suppress>
+	</Query>
+</QueryList>
+	]]></Query>
+
+	<ReadExistingEvents>true</ReadExistingEvents>
+	<TransportName>http</TransportName>
+	<ContentFormat>RenderedText</ContentFormat>
+	<Locale Language="en-US"/>
+	<LogFile>FWD-Security</LogFile>
+	<AllowedSourceNonDomainComputers></AllowedSourceNonDomainComputers>
+	<AllowedSourceDomainComputers>FIXME_SOURCES</AllowedSourceDomainComputers>
+</Subscription>
